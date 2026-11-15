@@ -1,4 +1,7 @@
-# Development dependencies, pinned: the pipeline plus the test runner.
+# Development dependencies, pinned: the pipeline, the test runner and the notebook tools.
 # python -m pip install -r requirements-dev.txt
 -r requirements.txt
+ipykernel==7.4.0
+jupytext==1.19.6
+nbclient==0.11.0
 pytest==9.2.0
