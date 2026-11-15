@@ -1,0 +1,7 @@
+# Tool settings only. The pipeline runs as modules (python -m pipeline.<step>), not as an
+# installed package, so there is no [project] table.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--strict-markers"
