@@ -26,7 +26,7 @@ Estimar, para cada transação de cartão, a probabilidade de ser fraude e recom
 | Licença | CC0: Public Domain, conferida na API do Kaggle em 15/11/2026 |
 | Versão | 1, publicada em 05/08/2020 |
 | Arquivos | `fraudTrain.csv` (335 MB) e `fraudTest.csv` (143 MB) |
-| Cobertura | Transações simuladas de 1.000 clientes em 800 lojistas, de 01/01/2019 a 31/12/2020 |
+| Cobertura | 1.852.394 transações simuladas de 999 cartões em 693 lojistas, de 01/01/2019 a 31/12/2020 (medido em [`reports/data-profile.md`](../reports/data-profile.md)) |
 
 Os dados são simulados: nenhuma pessoa real aparece neles. Mesmo assim, o projeto trata cada coluna pessoal como se fosse real (veja Segurança).
 
