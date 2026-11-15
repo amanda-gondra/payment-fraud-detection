@@ -1,0 +1,2 @@
+# Pipeline dependencies, pinned (python -m pip install -r requirements.txt).
+kagglehub==1.0.3
