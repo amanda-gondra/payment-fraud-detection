@@ -36,3 +36,9 @@ Cada decisão registra o que foi escolhido, as alternativas e o motivo.
 - **Decisão:** o relógio do projeto é `trans_date_trans_time`. A coluna `unix_time` não é usada. Toda etapa ordena as transações por data e hora antes de calcular qualquer sinal.
 - **Empates:** a ordenação é estável. Transações com a mesma data e hora mantêm a ordem em que aparecem no arquivo, e o resultado é sempre o mesmo. A fase 3 decide se transações do mesmo cartão no mesmo segundo entram ou não no histórico umas das outras.
 - **Justificativa:** o perfil dos dados ([`reports/data-profile.md`](../reports/data-profile.md)) mostrou que `unix_time` fica cerca de 7 anos antes de `trans_date_trans_time`, então as duas colunas não marcam o mesmo instante. Também mostrou que o arquivo de treino não está em ordem de data e hora e que há grupos de transações do mesmo cartão no mesmo segundo (20 grupos no treino, com 40 transações, e 24 no teste, com 48). Os sinais de histórico precisam de uma ordem estável para não contar a própria transação nem uma transação futura.
+
+### D7 — Análise exploratória só no arquivo de treino
+
+- **Decisão:** a análise exploratória ([`notebooks/eda.ipynb`](../notebooks/eda.ipynb), também [no Kaggle](https://www.kaggle.com/code/amandagondra/payment-fraud-detection-eda-pt-br)) usa só o `fraudTrain.csv`. O `fraudTest.csv` não é olhado até a avaliação final.
+- **Alternativa:** analisar os dois arquivos juntos, com mais dados.
+- **Justificativa:** as escolhas de sinais, limites e métricas saem desta análise. Se o arquivo de teste influenciasse essas escolhas, a avaliação final mediria o modelo num período que ele já "conhece", e o resultado sairia otimista.
