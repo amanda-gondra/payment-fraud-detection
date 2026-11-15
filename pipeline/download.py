@@ -61,13 +61,18 @@ def download() -> None:
 
 def describe_files() -> dict[str, FileInfo]:
     """Size and SHA-256 of each expected file."""
-    return {name: {"bytes": (RAW_DIR / name).stat().st_size, "sha256": sha256(RAW_DIR / name)} for name in FILES}
+    return {
+        name: {"bytes": (RAW_DIR / name).stat().st_size, "sha256": sha256(RAW_DIR / name)}
+        for name in FILES
+    }
 
 
 def fetch_metadata() -> dict[str, object]:
     """Public metadata of the dataset on Kaggle (licence, owner, versions); no credential."""
     request = urllib.request.Request(METADATA_URL, headers={"Accept": "application/json"})
-    with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310 - fixed https URL
+    # S310 / B310 warn that urlopen also accepts file:// and custom schemes. METADATA_URL is a
+    # fixed https constant, never built from input, so neither can reach this call.
+    with urllib.request.urlopen(request, timeout=30) as response:  # noqa: S310  # nosec B310
         return json.load(response)
 
 
@@ -76,7 +81,9 @@ def record(files: dict[str, FileInfo]) -> None:
     metadata = fetch_metadata()
     licence = metadata.get("licenseName")
     if licence != EXPECTED_LICENSE:
-        raise SystemExit(f"licence is {licence!r}, expected {EXPECTED_LICENSE!r}: review decision D1 first")
+        raise SystemExit(
+            f"licence is {licence!r}, expected {EXPECTED_LICENSE!r}: review decision D1 first"
+        )
     manifest = {
         "dataset": DATASET,
         "url": f"https://www.kaggle.com/datasets/{DATASET}",
@@ -106,7 +113,9 @@ def verify(files: dict[str, FileInfo]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--record", action="store_true", help="check the licence and write data/manifest.json")
+    parser.add_argument(
+        "--record", action="store_true", help="check the licence and write data/manifest.json"
+    )
     args = parser.parse_args(argv)
 
     download()
