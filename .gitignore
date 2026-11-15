@@ -1,0 +1,32 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Data: downloaded by pipeline/download.py and never committed.
+# data/manifest.json IS committed: it proves which files were used (D4).
+data/raw/
+data/interim/
+data/processed/
+
+# Experiments and model artifacts (published on the Hugging Face Hub, not in Git)
+mlruns/
+mlartifacts/
+models/
+
+# Secrets
+.env
+.env.*
+!.env.example
+kaggle.json
+access_token
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
