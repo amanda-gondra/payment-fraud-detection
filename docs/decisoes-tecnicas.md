@@ -30,3 +30,9 @@ Cada decisão registra o que foi escolhido, as alternativas e o motivo.
 
 - **Decisão:** nome, endereço e número do cartão são descartados na entrada (o número vira um identificador interno). Gênero, idade e profissão não entram como sinais de decisão; são usados só na auditoria de viés.
 - **Justificativa:** minimização de dados (LGPD) e para que o modelo não decida com base em características pessoais.
+
+### D6 — Relógio e ordem das transações
+
+- **Decisão:** o relógio do projeto é `trans_date_trans_time`. A coluna `unix_time` não é usada. Toda etapa ordena as transações por data e hora antes de calcular qualquer sinal.
+- **Empates:** a ordenação é estável. Transações com a mesma data e hora mantêm a ordem em que aparecem no arquivo, e o resultado é sempre o mesmo. A fase 3 decide se transações do mesmo cartão no mesmo segundo entram ou não no histórico umas das outras.
+- **Justificativa:** o perfil dos dados ([`reports/data-profile.md`](../reports/data-profile.md)) mostrou que `unix_time` fica cerca de 7 anos antes de `trans_date_trans_time`, então as duas colunas não marcam o mesmo instante. Também mostrou que o arquivo de treino não está em ordem de data e hora e que há grupos de transações do mesmo cartão no mesmo segundo (20 grupos no treino, com 40 transações, e 24 no teste, com 48). Os sinais de histórico precisam de uma ordem estável para não contar a própria transação nem uma transação futura.
