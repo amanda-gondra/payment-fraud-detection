@@ -1,7 +1,7 @@
-"""Prepare the training file: check it, minimise it, pseudonymise the card and order the rows.
+"""Prepare a raw file: check it, minimise it, pseudonymise the card and order the rows.
 
-Only fraudTrain.csv is read. fraudTest.csv is not opened in this phase: it stays untouched for
-the final evaluation (decisions D7 and D11).
+python -m pipeline.build prepares only fraudTrain.csv. fraudTest.csv is prepared with the same
+code, once, by python -m pipeline.evaluate, after the model is frozen (decisions D7, D11, D17).
 
 What happens to each raw column (docs/dados-processados.md explains every choice):
 
@@ -77,16 +77,21 @@ def card_keys(card_numbers: pd.Series, key: bytes) -> pd.Series:
     return card_numbers.map(pseudonyms).astype("category").rename("card_key")
 
 
-def verify_train_file() -> str:
-    """Check the training file against data/manifest.json; return its SHA-256."""
-    path = download.RAW_DIR / TRAIN_FILE
+def verify_raw_file(name: str) -> str:
+    """Check a raw file against data/manifest.json; return its SHA-256."""
+    path = download.RAW_DIR / name
     if not path.is_file():
-        raise SystemExit(f"missing data/raw/{TRAIN_FILE}: run python -m pipeline.download first")
-    expected = json.loads(download.MANIFEST.read_text(encoding="utf-8"))["files"][TRAIN_FILE]
+        raise SystemExit(f"missing data/raw/{name}: run python -m pipeline.download first")
+    expected = json.loads(download.MANIFEST.read_text(encoding="utf-8"))["files"][name]
     actual = {"bytes": path.stat().st_size, "sha256": download.sha256(path)}
     if actual != expected:
-        raise SystemExit(f"{TRAIN_FILE} differs from data/manifest.json")
+        raise SystemExit(f"{name} differs from data/manifest.json")
     return str(actual["sha256"])
+
+
+def verify_train_file() -> str:
+    """Check the training file against data/manifest.json; return its SHA-256."""
+    return verify_raw_file(TRAIN_FILE)
 
 
 def age_in_years(birth_dates: pd.Series, timestamps: pd.Series) -> pd.Series:
