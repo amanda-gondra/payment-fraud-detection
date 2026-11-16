@@ -2,7 +2,25 @@
 
 Modelo que estima, para cada transação de cartão, a probabilidade de ser fraude e recomenda uma decisão (aprovar, revisar ou bloquear), mostrando os sinais que mais pesaram. Inclui o caminho completo: dados com origem comprovada, sinais de comportamento sem vazamento, modelos comparados por custo, explicações, API e publicação.
 
-> **Status: fase 3 concluída** — sinais de comportamento e divisão temporal prontos, com testes contra vazamento. Próxima: modelos, limites de decisão e explicações.
+> **Status: fase 4 em andamento** — modelos treinados, calibrados e comparados na validação. A avaliação única no conjunto de teste ainda não foi feita.
+
+## Andamento
+
+| Fase | Entrega | Situação |
+| --- | --- | --- |
+| 1 | Download com registro de origem e SHA-256, perfil dos dados e licença conferida | Concluída |
+| 2 | Análise exploratória, publicada como notebook no Kaggle | Concluída |
+| 3 | Sinais de comportamento sem vazamento e divisão temporal | Concluída |
+| 4 | Modelos, limites por custo, explicações e auditoria de viés | Em andamento |
+| 5 | API com testes e Docker | Planejada |
+| 6 | Publicação: modelo e ficha no Hugging Face, demonstração e CI | Planejada |
+| 7 | Post de lançamento | Planejada |
+
+**Pendente na fase 4:**
+
+- ajustar dois pontos do relatório de seleção: o texto sobre a calibração e o intervalo de confiança da auditoria de equidade quando um grupo não tem nenhum erro;
+- refazer o treino final com esses ajustes;
+- fazer a avaliação única no conjunto de teste e o relatório final.
 
 ## Dados
 
@@ -41,6 +59,27 @@ O `python -m pipeline.build` transforma o arquivo de treino numa base pronta par
 
 O teste fica intocado até a avaliação final. Uma segunda implementação, independente do pipeline, recalcula os sinais de transações sorteadas e precisa chegar aos mesmos valores. Quatro vazamentos introduzidos de propósito são todos detectados. Detalhes em [dados processados](docs/dados-processados.md) e no [relatório da divisão](reports/temporal-split.md).
 
+## Modelos (fase 4, em andamento)
+
+O `python -m pipeline.train` treina e compara os modelos usando só o arquivo de treino:
+
+- **Referências:** uma regra pelo valor da compra (a partir de 713,69) e uma regressão logística.
+- **Modelo principal:** LightGBM, com controle de sobreajuste. A configuração é escolhida por validação cruzada em quatro janelas de tempo, com parada pelo log loss, e vence a mais simples entre as empatadas. Sem SMOTE e sem reamostragem.
+- **Calibração:** sem calibrador, Platt e isotônica comparados por validação cruzada. Venceu a probabilidade do próprio modelo.
+- **Decisão em três faixas** (aprovar, revisão humana, bloquear): os limites saem de um custo hipotético documentado, com análise de sensibilidade e teto de 1% das transações em revisão.
+- **Explicações e equidade:** SHAP convertido em motivos em português; erros comparados por gênero e faixa etária, atributos que não entram no modelo.
+- **Artefatos seguros:** sem pickle, com SHA-256 de cada arquivo conferido ao carregar. Experimentos registrados no MLflow.
+
+Resultados no período de 01/04 a 21/06/2020, que não participou da escolha dos hiperparâmetros:
+
+| Modelo | PR-AUC | Recall com precisão ≥ 90% |
+| --- | --- | --- |
+| Regra do valor | 0,1874 | não atinge a meta |
+| Regressão logística | 0,7685 | 58,3% |
+| LightGBM | 0,9849 | 97,0% |
+
+São resultados de validação, não o resultado final. A medida definitiva será a avaliação única no conjunto de teste, ainda não executada. Detalhes no [relatório de seleção](reports/model-selection.md) e na [documentação da modelagem](docs/modelagem.md).
+
 ## Como reproduzir
 
 Requer Python 3.12. No Windows:
@@ -66,6 +105,14 @@ python -m pipeline.build
 ```
 
 No Linux e no macOS, use `cp` no lugar de `copy`. O `pipeline.build` confere o `fraudTrain.csv` com o `data/manifest.json`, leva cerca de um minuto e grava os arquivos em `data/processed/`, fora do Git. Guarde a chave: com outra, os pseudônimos mudam, mas o restante dos dados fica igual.
+
+Para treinar e comparar os modelos (depois do `pipeline.build`; leva cerca de 45 minutos):
+
+```
+python -m pipeline.train
+```
+
+O treino grava os modelos em `models/` e os experimentos em `mlruns/`, ambos fora do Git, e o relatório em `reports/model-selection.md`.
 
 Para rodar os testes (os de dados sintéticos não precisam da base; os de regressão sobre os dados reais só rodam depois do `pipeline.build` e, sem ele, são pulados):
 
@@ -93,6 +140,8 @@ No Windows, rode antes `$env:PYTHONUTF8 = "1"` (PowerShell); sem isso, os acento
 | [Análise exploratória](notebooks/eda.ipynb) | Horário, categoria, valor, distância e histórico do cartão; também [no Kaggle](https://www.kaggle.com/code/amandagondra/payment-fraud-detection-eda-pt-br) |
 | [Dados processados](docs/dados-processados.md) | Campos removidos, transformados e mantidos, dicionário dos 28 sinais e testes contra vazamento |
 | [Divisão temporal](reports/temporal-split.md) | Datas de corte, transações e fraudes por conjunto, gerado por `python -m pipeline.build` |
+| [Modelagem](docs/modelagem.md) | Fluxo do treino, modelos, calibração, decisão por custo, SHAP, equidade e artefatos |
+| [Seleção do modelo](reports/model-selection.md) | Comparação dos modelos, calibração, limites, SHAP e equidade na validação, gerado por `python -m pipeline.train` |
 
 ## Autora
 
